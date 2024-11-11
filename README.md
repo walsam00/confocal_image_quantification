@@ -71,7 +71,7 @@ install packages using Windows command prompt (consider creating a dedicated vir
 Files needed (file- and directory names need to match exactly, unless specified):
 |Folder/File|Description|
 |---|---|
-|**automated_colocalization_quantification** | Parent folder, can be placed anywhere, can be renamed|
+|**automated_colocalization_quantification** | Parent folder, can be placed anywhere (avoid network locations, as they may break the batch script), can be renamed|
 |Colocalization_quantification_per_cell.py | Quantification python script|
 |Analysis_per_cell.bat								| Execute this to run the software. Windows batch script, first runs Ilastik segmentation, then initiates above python script.|
 |settings.ini									| File containing settings for the python script that quantifies the segmented image data. The user can change these settings by editing this file in a word processor (Notepad for example). The format needs to be kept exactly as it is, only the individual values for the settings can be adapted (e.g. changing 'False' to 'True' or changing the numerical value of a parameter).|
