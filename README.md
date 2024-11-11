@@ -1,10 +1,12 @@
 # confocal_image_quantification
-
 This software takes time-resolved confocal microscopy images, separated by channel and provided as *.tif files, and detects the amount and characteristics of spots colocalized in two channels. 
 The software does this quantification on a per-cell basis and uses cell nuclei and a cell mask it creates from one of the two channel images containing the spots of interest.
 Time series are expected as input data. [Ilastik](https://www.ilastik.org/) is used to segment the confocal images based on user-provided training. The software handles 2D as well as 3D (z-stack) confocal images and is intended to run on Windows 10/11.
 
 This software was developed for a project quantifying endosomal processes following DNA-LNP transfection of specific cell lines. Read the paper [here](insert DOI link once published). The software can be used as is using the pre-trained Ilastik image segmentation available [here](link to Ilastik project files once published) to replicate the published data or to apply to more image data of the same type. The software can be adapted without altering the code to any image quantification task that uses the same features (quantifying the overlap of puncta contained in of two signal channels of interest, one additionally containing a weaker signal for the cells themselves, as well as a cell nucleus image channel) by training new Ilastik project files for each image channel.
+
+![](/assets/labeled_cells.png)
+![](/assets/Event_graph.png)
 
 ## How to use:
 
