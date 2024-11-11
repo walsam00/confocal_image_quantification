@@ -23,7 +23,7 @@ If desired, the following settings can be changed in the settings.ini file (open
 
 + nucleus_area_cutoff : sidelength of the square (for 2D) or the cube (in 3D) that defines the minimal acceptable area (in pixels) of a nucleus. Nuclei smaller than this are removed before analysis
 + overlap_area_cutoff : sidelength of the square (for 2D) or the cube (in 3D) that defines the maximum acceptable sized of colocalized areas (in pixels) of blue and green. Spots larger than this are removed before analysis
-+ z_dimension_scale_factor : how much smaller the scale of the x/y-axis is (for z-stacks) than of the z-axis -> is used to adequately calculate the overlap/nucleus cutoff values for 3D
++ z_dimension_scale_factor : factor by how much smaller the scale of the x/y-axis is (for z-stacks) compared to the z-axis -> is used to adequately calculate the overlap/nucleus cutoff values for 3D
 + verbose = if set to 'True', creates subdirectory and saves overlap .tif, green_puncta .tif and labelled cell .tif images. Useful for validating results/debugging/visualization
 + create_histogram : if set to 'True', creates subdirectory and saves histograms of events per cell data per timepoint as png images. Useful for validation of the quantification as well as general science
 + count_green_puncta : if set to 'True', counts green signal puncta in addition to overlap (green AND blue) puncta.
