@@ -8,14 +8,15 @@ This software was developed for a project quantifying endosomal processes follow
 
 ## How to use:
 
-1. Download pre-trained Ilastik segmentation project files for each image channel [here](link to Ilastik project files once published) or create your own. Save these project files with the correct file-names in the same location as the .bat file (see further on).
-2. From your image data to be analyzed, manually create separate .tif files out of the channels of interest. The software was developed for microscopy images from an Olympus confocal microscope, which produces .oir files. FIJI is a good program to split out the channels of interest. The Olympus FIJI plugin is the best way to import .oir files into FIJI. To use the software as intended, the following image channels are needed as separate .tif-files: 
+1. Save confocal_image_quantification folder contained in this repository including its contents on your machine.
+2. Download pre-trained Ilastik segmentation project files for each image channel [here](link to Ilastik project files once published) or create your own. Save these project files with the correct file-names in the same location as the .bat file (see further on).
+3. From your image data to be analyzed, manually create separate .tif files out of the channels of interest. The software was developed for microscopy images from an Olympus confocal microscope, which produces .oir files. FIJI is a good program to split out the channels of interest. The Olympus FIJI plugin is the best way to import .oir files into FIJI. To use the software as intended, the following image channels are needed as separate .tif-files: 
 		a) Labeled DNA signal ('blue' signal)
 		b) Signal for events of interest (endosomal escape or recycling) which includes a weaker general staining of the whole cell ('green' signal)
 		c) Labeled nuclei signal ('nuclei' signal)
-3. Create a new subfolder for those files in the 'automated_colocalization_quantification' Folder.
-4. Put all three files into that folder. They need to contain keywords in their filname: 'blue' 'green' 'nuclei'. Z-stacks need to be identified by using the keywords 'blu3', 'gr33n' and 'nucl3i' instead.
-5. Run the 'Analysis_per_cell.bat' script. 
+4. Create a new subfolder for those files in the 'automated_colocalization_quantification' Folder.
+5. Put all three files into that folder. They need to contain keywords in their filname: 'blue' 'green' 'nuclei'. Z-stacks need to be identified by using the keywords 'blu3', 'gr33n' and 'nucl3i' instead.
+6. Run the 'Analysis_per_cell.bat' script. 
 		The script automatically applies the 'pixel_classification_blue.ilp' and the 'pixel_classification_green.ilp', 'pixel_classification_nuclei.ilp' and 'pixel_classification_green_cells.ilp' Ilastik project files to segment all unsegmented tif files.
 		The batch file then runs the Python script 'Colocalization_quantification_per_cell.py' which overlaps the three masks (blue dots, green dots, cells), creates a 'results_per_cell.xlsx' from the 'template_per_cell_data.xlsx' Excel sheet. The script finally quantifies the result per cell and reports the data by copying it into an Excel template file.
 
