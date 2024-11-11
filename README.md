@@ -10,7 +10,7 @@ This software was developed for a project quantifying endosomal processes follow
 
 1. Save confocal_image_quantification folder contained in this repository including its contents on your machine.
 2. Download pre-trained Ilastik segmentation project files for each image channel [here](link to Ilastik project files once published) or create your own. Save these project files with the correct file-names in the same location as the .bat file (see further on).
-3. From your image data to be analyzed, manually create separate .tif files out of the channels of interest. The software was developed for microscopy images from an Olympus confocal microscope, which produces .oir files. FIJI is a good program to split out the channels of interest. The Olympus FIJI plugin is the best way to import .oir files into FIJI. To use the software as intended, the following image channels are needed as separate .tif-files: 
+3. From your image data to be analyzed, manually create separate .tif files out of the channels of interest. The software was developed for microscopy images from an Olympus confocal microscope, which produces .oir files. [FIJI](https://imagej.net/software/fiji/downloads) is a good program to split out the channels of interest. The [Olympus FIJI plugin](https://imagej.net/formats/olympus) is the best way to import .oir files into FIJI. To use the software as intended, the following image channels are needed as separate .tif-files: 
 		a) Labeled DNA signal ('blue' signal)
 		b) Signal for events of interest (endosomal escape or recycling) which includes a weaker general staining of the whole cell ('green' signal)
 		c) Labeled nuclei signal ('nuclei' signal)
