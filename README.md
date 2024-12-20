@@ -6,8 +6,9 @@ Time series are expected as input data. [Ilastik](https://www.ilastik.org/) is u
 This software was developed for a project quantifying endosomal processes following DNA-LNP transfection of specific cell lines. Read the paper [here](insert DOI link once published). The software can be used as is using the pre-trained Ilastik image segmentation available [here](link to Ilastik project files once published) to replicate the published data or to apply to more image data of the same type. The software can be adapted without altering the code to any image quantification task that uses the same features (quantifying the overlap of puncta contained in of two signal channels of interest, one additionally containing a weaker signal for the cells themselves, as well as a cell nucleus image channel) by training new Ilastik project files for each image channel.
 
 ![](/assets/labeled_cells.png)
-![](/assets/labeled_cells_3D.png)
 ![](/assets/Event_graph.png)
+![](/assets/labeled_cells_3D.png)
+![](/assets/event_graph_3D.png)
 
 ## How to use:
 
