@@ -34,7 +34,7 @@ If desired, the following settings can be changed in the settings.ini file (open
 
 ### Prerequisites:
 + Ilastik installation [tested with version 1.4.0]
-+ Python 3.x installation
++ Python 3.x installation [tested with version 3.11.9]
 + Python packages listed further on
 + Ilastik pixel classification project files, trained on representative sample of the data. One for blue spots, one for green spots, one for whole cells, one for nuclei.
 + Correct assignment of file path to the Ilastik executable in the 'Analysis_per_cell.bat' file (use notepad to edit the file).
