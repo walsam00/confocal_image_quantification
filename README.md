@@ -68,39 +68,71 @@ install packages using Windows command prompt (consider creating a dedicated vir
 + python -m pip install matplotlib
 
 ## Required files and folder structure:
+🗀 automated_colocalization_quantification  
+├──Colocalization_quantification_per_cell.py  
+├──Analysis_per_cell.bat  
+├──settings.ini  
+├──pixel_classification_blue.ilp  
+├──pixel_classification_green.ilp  
+├──pixel_classification_green_cells.ilp  
+├──pixel_classification_nuclei.ilp  
+├──pixel_classification_blue_3d.ilp  
+├──pixel_classification_green_3d.ilp  
+├──pixel_classification_green_cells_3d.ilp  
+├──pixel_classification_nuclei_3d.ilp  
+├──template_per_cell_data.xlsx  
+├──🗀 your data folder pre analysis  
+│&nbsp; &nbsp; &nbsp; ├──filename_blue.tif  
+│&nbsp; &nbsp; &nbsp; ├──filename_green.tif  
+│&nbsp; &nbsp; &nbsp; ├──filename_nuclei.tif  
+├──🗀 your data folder post analysis  
+│&nbsp; &nbsp; &nbsp; ├──filename_blue.tif  
+│&nbsp; &nbsp; &nbsp; ├──filename_blue_segmented.tiff  
+│&nbsp; &nbsp; &nbsp; ├──filename_green.tif  
+│&nbsp; &nbsp; &nbsp; ├──filename_green_cells_segmented.tiff  
+│&nbsp; &nbsp; &nbsp; ├──filename_green_segmented.tiff  
+│&nbsp; &nbsp; &nbsp; ├──filename_nuclei.tif  
+│&nbsp; &nbsp; &nbsp; ├──filename_nuclei_segmented.tiff  
+│&nbsp; &nbsp; &nbsp; ├──results_per_cell.xlsx  
+├──🗀 your data folder post analysis cleaned  
+│&nbsp; &nbsp; &nbsp; ├──filename_blue_segmented.tiff  
+│&nbsp; &nbsp; &nbsp; ├──filename_green_cells_segmented.tiff  
+│&nbsp; &nbsp; &nbsp; ├──filename_green_segmented.tiff  
+│&nbsp; &nbsp; &nbsp; ├──filename_nuclei_segmented.tiff  
+│&nbsp; &nbsp; &nbsp; ├──results_per_cell.xlsx  
 
 Files needed (file- and directory names need to match exactly, unless specified):
 |Folder/File|Description|
 |---|---|
-|**automated_colocalization_quantification** | Parent folder, can be placed anywhere (avoid network locations, as they may break the batch script), can be renamed|
-|Colocalization_quantification_per_cell.py | Quantification python script|
-|Analysis_per_cell.bat								| Execute this to run the software. Windows batch script, first runs Ilastik segmentation, then initiates above python script.|
-|settings.ini									| File containing settings for the python script that quantifies the segmented image data. The user can change these settings by editing this file in a word processor (Notepad for example). The format needs to be kept exactly as it is, only the individual values for the settings can be adapted (e.g. changing 'False' to 'True' or changing the numerical value of a parameter).|
-|pixel_classification_blue.ilp							| Ilastik pixel classification project file for blue spots, needs to be trained on representative sample of all data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
-|pixel_classification_green.ilp							| Ilastik pixel classification project file for green spots, needs to be trained on representative sample of all data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
-|pixel_classification_green_cells.ilp						| Ilastik pixel classification project file for whole cells, needs to be trained on representative sample of all data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
-|pixel_classification_nuclei.ilp							| Ilastik pixel classification project file for nuclei, needs to be trained on representative sample of all data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
-|pixel_classification_blue_3d.ilp						| Ilastik pixel classification project file for blue spots in z-stack images, needs to be trained on representative sample of all z-stack data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
-|pixel_classification_green_3d.ilp						| Ilastik pixel classification project file for green spots in z-stack images, needs to be trained on representative sample of all z-stack data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
-|pixel_classification_green_cells_3d.ilp						| Ilastik pixel classification project file for whole cells in z-stack images, needs to be trained on representative sample of all z-stack data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
-|pixel_classification_nuclei_3d.ilp						| Ilastik pixel classification project file for nuclei in z-stack images, needs to be trained on representative sample of all z-stack data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
+|**🗀 automated_colocalization_quantification** | Parent folder, can be placed anywhere (avoid network locations, as they may break the batch script), can be renamed|
+|├──Colocalization_quantification_per_cell.py | Quantification python script|
+|├──Analysis_per_cell.bat								| Execute this to run the software. Windows batch script, first runs Ilastik segmentation, then initiates above python script.|
+|├──settings.ini									| File containing settings for the python script that quantifies the segmented image data. The user can change these settings by editing this file in a word processor (Notepad for example). The format needs to be kept exactly as it is, only the individual values for the settings can be adapted (e.g. changing 'False' to 'True' or changing the numerical value of a parameter).|
+|├──pixel_classification_blue.ilp							| Ilastik pixel classification project file for blue spots, needs to be trained on representative sample of all data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
+|├──pixel_classification_green.ilp							| Ilastik pixel classification project file for green spots, needs to be trained on representative sample of all data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
+|├──pixel_classification_green_cells.ilp						| Ilastik pixel classification project file for whole cells, needs to be trained on representative sample of all data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
+|├──pixel_classification_nuclei.ilp							| Ilastik pixel classification project file for nuclei, needs to be trained on representative sample of all data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
+|├──pixel_classification_blue_3d.ilp						| Ilastik pixel classification project file for blue spots in z-stack images, needs to be trained on representative sample of all z-stack data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
+|├──pixel_classification_green_3d.ilp						| Ilastik pixel classification project file for green spots in z-stack images, needs to be trained on representative sample of all z-stack data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
+|├──pixel_classification_green_cells_3d.ilp						| Ilastik pixel classification project file for whole cells in z-stack images, needs to be trained on representative sample of all z-stack data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
+|├──pixel_classification_nuclei_3d.ilp						| Ilastik pixel classification project file for nuclei in z-stack images, needs to be trained on representative sample of all z-stack data to be segmented. Do this once and don't change anymore to ensure consistent segmentation across all files. The filename of this ilastik project file needs to be exactly as written here.|
 |template_per_cell_data.xlsx							| Excel template that is copied and filled in for each set of data that is quantified. Can be adapted and chaged (e.g. the graphs, column titles, etc.), but the style and placement of the data that is added will always be the same.|
-|**your data folder pre analysis**| Add this folder yourself: It should contain data to be analyzed. The script can handle any number of these folders at once, just add one folder for each time-series. Folder name can be changed. Must contain the files specified in the following lines, and nothing else:|
-|filename_blue.tif							| Blue channel image data as a tif file. Axis order needs to be [t,y,x] or [t,z,y,x] (images must be a time-series). The base filename is ideally the same for all three image files. Combine the base filename and the appropriate keyword ('blue'/'green'/'nuclei' OR 'blu3'/'gr33n'/'nucl3i'). The base filename can be anything, but cannot contain the key words (i.e. the base filename shouldn't contain 'blue'/'green'/'nuclei'/'blu3'/'gr33n'/'nucl3i').|
-|filename_green.tif							| Green channel image data as a tif file. Axis order needs to be [t,y,x] or [t,z,y,x] (images must be a time-series). The base filename is ideally the same for all three image files. Combine the base filename and the appropriate keyword ('blue'/'green'/'nuclei' OR 'blu3'/'gr33n'/'nucl3i'). The base filename can be anything, but cannot contain the key words (i.e. the base filename shouldn't contain 'blue'/'green'/'nuclei'/'blu3'/'gr33n'/'nucl3i').|
-|filename_nuclei.tif							| Nucleus stain channel image data as a tif file. Axis order needs to be [t,y,x] or [t,z,y,x] (images must be a time-series). The base filename is ideally the same for all three image files. Combine the base filename and the appropriate keyword ('blue'/'green'/'nuclei' OR 'blu3'/'gr33n'/'nucl3i'). The base filename can be anything, but cannot contain the key words (i.e. the base filename shouldn't contain 'blue'/'green'/'nuclei'/'blu3'/'gr33n'/'nucl3i').|
-|**your data folder post analysis**						| This is what the data folders look like after the script successfully ran. If the script is ran again with new subfolders in the directory, fully analyzed folders like this one are ignored, and thus can be left where they are, if desired.|
-|filename_blue.tif							| Blue channel image data as a tif file. Unchanged post-analysis.|
-|filename_blue_segmented.tiff						| Blue channel image data in segmented form (background = 1, spots of interest = 2) as a tiff file.|
-|filename_green.tif							| Green channel image data as a tif file. Unchanged post-analysis.|
-|filename_green_cells_segmented.tiff					| Green channel image data in segmented form (background = 1, cells = 2) as a tiff file.|
-|filename_green_segmented.tiff						| Green channel image data in segmented form (background = 1, spots of interest = 2) as a tiff file.|
-|filename_nuclei.tif							| Nucleus stain channel image data as a tif file. Unchanged post-analysis.|
-|filename_nuclei_segmented.tiff						| Green channel image data in segmented form (background = 1, nuclei = 2) as a tiff file.|
-|results_per_cell.xlsx							| Excel file containing a summary of the analysis as well as detailed data on the second worksheet. Filled copy of template_per_cell_data.xlsx.|
-|**your data folder post analysis cleaned**				| If you want to minimize the storage footprint of your data, you can clean up your finished folders like this (script will recognize it as fully analyzed in this state):|
-|filename_blue_segmented.tiff						| Optionally keep this segmented data file. Useful if other analyses are planned with this data.|
-|filename_green_cells_segmented.tiff					| Optionally keep this segmented data file. Useful if other analyses are planned with this data.|
-|filename_green_segmented.tiff						| Optionally keep this segmented data file. Useful if other analyses are planned with this data.|
-|filename_nuclei_segmented.tiff					| Optionally keep this segmented data file. Useful if other analyses are planned with this data.|
-|results_per_cell.xlsx      | Keep the results Excel file.|
+|**├──🗀 your data folder pre analysis**| Add this folder yourself: It should contain data to be analyzed. The script can handle any number of these folders at once, just add one folder for each time-series. Folder name can be changed. Must contain the files specified in the following lines, and nothing else:|
+|│&nbsp; &nbsp; &nbsp; ├──filename_blue.tif							| Blue channel image data as a tif file. Axis order needs to be [t,y,x] or [t,z,y,x] (images must be a time-series). The base filename is ideally the same for all three image files. Combine the base filename and the appropriate keyword ('blue'/'green'/'nuclei' OR 'blu3'/'gr33n'/'nucl3i'). The base filename can be anything, but cannot contain the key words (i.e. the base filename shouldn't contain 'blue'/'green'/'nuclei'/'blu3'/'gr33n'/'nucl3i').|
+|│&nbsp; &nbsp; &nbsp; ├──filename_green.tif							| Green channel image data as a tif file. Axis order needs to be [t,y,x] or [t,z,y,x] (images must be a time-series). The base filename is ideally the same for all three image files. Combine the base filename and the appropriate keyword ('blue'/'green'/'nuclei' OR 'blu3'/'gr33n'/'nucl3i'). The base filename can be anything, but cannot contain the key words (i.e. the base filename shouldn't contain 'blue'/'green'/'nuclei'/'blu3'/'gr33n'/'nucl3i').|
+|│&nbsp; &nbsp; &nbsp; ├──filename_nuclei.tif							| Nucleus stain channel image data as a tif file. Axis order needs to be [t,y,x] or [t,z,y,x] (images must be a time-series). The base filename is ideally the same for all three image files. Combine the base filename and the appropriate keyword ('blue'/'green'/'nuclei' OR 'blu3'/'gr33n'/'nucl3i'). The base filename can be anything, but cannot contain the key words (i.e. the base filename shouldn't contain 'blue'/'green'/'nuclei'/'blu3'/'gr33n'/'nucl3i').|
+|**├──🗀 your data folder post analysis**						| This is what the data folders look like after the script successfully ran. If the script is ran again with new subfolders in the directory, fully analyzed folders like this one are ignored, and thus can be left where they are, if desired.|
+|│&nbsp; &nbsp; &nbsp; ├──filename_blue.tif							| Blue channel image data as a tif file. Unchanged post-analysis.|
+|│&nbsp; &nbsp; &nbsp; ├──filename_blue_segmented.tiff						| Blue channel image data in segmented form (background = 1, spots of interest = 2) as a tiff file.|
+|│&nbsp; &nbsp; &nbsp; ├──filename_green.tif							| Green channel image data as a tif file. Unchanged post-analysis.|
+|│&nbsp; &nbsp; &nbsp; ├──filename_green_cells_segmented.tiff					| Green channel image data in segmented form (background = 1, cells = 2) as a tiff file.|
+|│&nbsp; &nbsp; &nbsp; ├──filename_green_segmented.tiff						| Green channel image data in segmented form (background = 1, spots of interest = 2) as a tiff file.|
+|│&nbsp; &nbsp; &nbsp; ├──filename_nuclei.tif							| Nucleus stain channel image data as a tif file. Unchanged post-analysis.|
+|│&nbsp; &nbsp; &nbsp; ├──filename_nuclei_segmented.tiff						| Green channel image data in segmented form (background = 1, nuclei = 2) as a tiff file.|
+|│&nbsp; &nbsp; &nbsp; ├──results_per_cell.xlsx							| Excel file containing a summary of the analysis as well as detailed data on the second worksheet. Filled copy of template_per_cell_data.xlsx.|
+|**├──🗀 your data folder post analysis cleaned**				| If you want to minimize the storage footprint of your data, you can clean up your finished folders like this (script will recognize it as fully analyzed in this state):|
+|│&nbsp; &nbsp; &nbsp; ├──filename_blue_segmented.tiff						| Optionally keep this segmented data file. Useful if other analyses are planned with this data.|
+|│&nbsp; &nbsp; &nbsp; ├──filename_green_cells_segmented.tiff					| Optionally keep this segmented data file. Useful if other analyses are planned with this data.|
+|│&nbsp; &nbsp; &nbsp; ├──filename_green_segmented.tiff						| Optionally keep this segmented data file. Useful if other analyses are planned with this data.|
+|│&nbsp; &nbsp; &nbsp; ├──filename_nuclei_segmented.tiff					| Optionally keep this segmented data file. Useful if other analyses are planned with this data.|
+|│&nbsp; &nbsp; &nbsp; ├──results_per_cell.xlsx      | Keep the results Excel file.|
