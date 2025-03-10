@@ -59,8 +59,8 @@ To apply the software to different datasets, you can train new Ilastik project f
   - **Events of interest (e.g., endosomal escape) with general cell staining ('green')**
   - **Nuclei signal ('nuclei')**
 - Save these `.tif` files in the same folder with the following names:
-  - **'blue.tif'**, **'green.tif'**, **'nuclei.tif'** (for single images)
-  - **'blu3.tif'**, **'gr33n.tif'**, **'nucl3i.tif'** (for Z-stacks)
+  - '(your_filename)**_blue.tif'**, '(your_filename)**_green.tif'**, '(your_filename)**_nuclei.tif'** (for 2D images)
+  - '(your_filename)**_blu3.tif'**, '(your_filename)**_gr33n.tif'**, '(your_filename)**_nucl3i.tif'** (for Z-stacks)
 
 ## 2. Prepare Ilastik Project Files
 - The Ilastik project files should also be in the same folder as the software. Use these names:
