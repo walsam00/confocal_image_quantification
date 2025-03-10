@@ -1,13 +1,47 @@
-# confocal_image_quantification
-This software takes time-resolved confocal microscopy images, separated by channel and provided as *.tif files, and detects the amount and characteristics of spots co-localized in two of the image channels. 
-The software does this quantification on a per-cell basis and uses nuclei and a cell mask to detect each cell. The cell nucleus mask is created from the nucleus confocal image channel; the cell mask is created from a combined cell/endosomal event puncta image channel.
-Time series are expected as input data. The [Ilastik](https://www.ilastik.org/) software is used to segment the confocal images based on user-provided training. The software handles 2D as well as 3D (z-stack) confocal images and is intended to run on Windows 10/11. Each segmentation mask requires an Ilastik pixel classification project file, which has been trained by hand on a representative subset of the image data to which the software will be applied. 3D image datasets require separate Ilastik project files from 2D image datasets.
+# Software Overview
 
-This software was developed for a project quantifying endosomal processes following DNA-LNP transfection of specific cell lines. Read the paper [here](insert DOI link once published). The software can be used as is using the pre-trained Ilastik image segmentation available [here](link to Ilastik project files once published) to replicate the published data or to apply to more image data of the same type. The software can be adapted without altering the code to any image quantification task that requires the same workflow on the same image features (i.e. quantifying the overlap of puncta contained in of two signal channels of interest, with one channel additionally containing a weaker signal for the cells themselves, as well as a separate cell nucleus image channel). The analysis workflow of the software can be applied to different data by training new Ilastik project files for each image channel.
+This software analyzes time-resolved confocal microscopy images that are separated by channel and provided as `.tif` files. It detects and quantifies the amount and characteristics of spots that are co-localized in two specific image channels. The quantification is performed on a **per-cell** basis, using nuclei and cell masks to identify each cell in the image. 
+
+- **Green channel**: Contains cells and endosomal event as puncta
+- **Blue channel**: Contains DNA signal that colocalizes with endosomal event puncta
+- **Nucleus channel**: Contains cell nuclei, used for separation of individual cells
+
+### Input Data:
+- The software expects **time series** of images as input.
+- The **Ilastik** software is used for image segmentation based on user-provided training data.
+- It works with both **2D** and **3D (z-stack)** confocal images.
+
+### Segmentation Process:
+- Each segmentation mask requires an **Ilastik pixel classification project file**. This file is generated through training on a representative subset of the image data to which the software will be applied.
+- For **3D** image datasets, separate Ilastik project files are needed, different from the files used for 2D datasets.
+
+### System Requirements:
+- The software is designed to run on **Windows 10/11**.
+
+# Use Case and Adaptability
+
+This software was originally developed for a project quantifying endosomal processes following **DNA-LNP transfection** of specific cell lines. The full paper can be found [here](insert DOI link once published).
+
+You can use the software as-is with the **pre-trained Ilastik segmentation files** available [here](link to Ilastik project files once published) to replicate the published results or apply it to similar types of image data. 
+
+While the software is tailored for this specific use case, it can be adapted for other image quantification tasks. The workflow can be used for any task that involves quantifying the overlap of puncta in two signal channels, where one channel also contains a weaker signal representing the cells, along with a separate channel for the cell nucleus. 
+
+To apply the software to different datasets, you can train new Ilastik project files for each image channel.
+
+# Example 2D segmented cell mask (single timepoint of a time-series): #
 
 ![](/assets/labeled_cells.png)
+
+# Corresponding overlap event quantification over time: #
+
 ![](/assets/Event_graph.png)
+
+# Example 3D segmented cell mask (single timepoint of a time-series): #
+
 ![](/assets/labeled_cells_3D.png)
+
+# Corresponding overlap event quantification over time: #
+
 ![](/assets/event_graph_3D.png)
 
 # How to install:
