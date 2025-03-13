@@ -18,6 +18,29 @@ This software analyzes time-resolved confocal microscopy images that are separat
 ### System Requirements:
 - The software is designed to run on **Windows 10/11**.
 
+# What the software does
+
+The software quantifies the overlap of the signal in the 'blue' channel with the puncta in the 'green' image channel on a per-cell basis over a time-series of images:
+- The three image channels are segmented into four masks by user-trained image segmentation in Ilastik
+- The **cell area mask** and the **cell nucleus mask** are combined to separate individual cells using watershed segmentation
+  - Nuclei that are below a set size threshold are ignored (adjustable in GUI_settings.ini)
+  - Cells that are cut off, i.e. touch the edge of the image (2D - any edge; 3D - any of the sides of the image volume, not top or bottom) are excluded from the analysis
+- The **'blue' signal mask** and the **'green puncta' signal mask** are overlapped
+- This overlap is quantified on a per-cell basis for each timepoint
+    - Individual overlapping puncta are excluded from analysis if they are above a set area/volume cutoff (adjustable in GUI_settings.ini)
+- The results are summarized and graphed in an Excel-report and include:
+    - Mean number of overlap events per cell over time
+    - Mean overlap events per cell and cell area(2D)/volume(3D) over time
+    - Mean 'blue' signal intensity per cell over time
+    - Mean overlap area/volume per cell over time
+    - Mean overlap area/volume in relation to 'blue' signal area/volume (%) per cell over time
+    - Mean number of 'green' signal puncta per cell over time
+    - Mean number of 'green' signal puncta per cell and cell area over time
+    - Mean cell area/volume over time
+    - Mean overall intracellular 'blue' signal intensity over time
+    - Mean overall extracellular 'blue' signal intensity over time
+- The results additionally contain the raw data for each cell at each timepoint
+
 # Use Case and Adaptability
 
 This software was originally developed for a project quantifying endosomal processes following **DNA-LNP transfection** of specific cell lines. The full paper can be found [here](insert DOI link once published).
@@ -45,7 +68,7 @@ To apply the software to different datasets, you can train new Ilastik project f
 ![](/assets/event_graph_3D.png)
 
 # How to install:
-1. Download the confocal_image_quantification folder contained in this repository including its contents on your machine.
+1. Download the [contents of this repository](https://docs.github.com/en/get-started/start-your-journey/downloading-files-from-github#downloading-a-repositorys-files) and save the confocal_image_quantification folder including its contents on your machine.
 2. Download [Ilastik](https://www.ilastik.org/)
 3. Download pre-trained Ilastik segmentation project files for each image channel [here](link to Ilastik project files once published) or create your own. By default, the software expects to find these project files with the correct file-names in the same location as the .bat file used to run the software (details - see further on).
 4. Download Python and the required dependencies (see ‘Dependencies’ section)
@@ -61,6 +84,7 @@ To apply the software to different datasets, you can train new Ilastik project f
 - Save these `.tif` files in the same folder with the following names:
   - '(your_filename)**_blue.tif'**, '(your_filename)**_green.tif'**, '(your_filename)**_nuclei.tif'** (for 2D images)
   - '(your_filename)**_blu3.tif'**, '(your_filename)**_gr33n.tif'**, '(your_filename)**_nucl3i.tif'** (for Z-stacks)
+- When analyzing a time-series of z-stacks (3D images), adjust the z_dimension_scale_factor in GUI_settings.ini (open in any text editor) to match the image acquisition parameters. The scale factor accounts for much smaller the resolution is in the z-axis as compared to the x and y. A factor of 0.1 would for example mean that the x/y image resolution is 10 times larger than the z-axis resolution.
 
 ## 2. Prepare Ilastik Project Files
 - The Ilastik project files should also be in the same folder as the software. Use these names:
