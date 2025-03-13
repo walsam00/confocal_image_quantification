@@ -99,6 +99,7 @@ If desired, the following software settings can be changed in the GUI_settings.i
 + Ilastik installation [tested with version 1.4.0]
 + Ilastik pixel classification project files, trained on representative sample of the data. One for blue puncta, one for green puncta, one for whole cells, one for nuclei.
 + Python 3.x installation [tested with version 3.11.9]
+
 The Python script needs the following libraries:
 + numpy (tested with version 1.24.3)
 + pandas (tested with version 2.2.1)
