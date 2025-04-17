@@ -1,6 +1,6 @@
 # Software Overview
 
-This software analyzes time-resolved confocal microscopy images that are separated by channel and provided as `.tif` files. It detects and quantifies the amount and characteristics of spots that are co-localized in two specific image channels. The quantification is performed on a **per-cell** basis, using nuclei and cell masks to identify each cell in the image. 
+This software analyzes time-resolved confocal microscopy images that are separated by channel and provided as `.tif` files. It detects and quantifies the amount and characteristics of spots that are co-localized in two specific image channels. The quantification is performed on a **per-cell** basis, using nuclei and cell masks to identify each cell in the image. Read the related [research article](https://doi.org/10.1016/j.jconrel.2025.113709) for detailed information.
 
 - **Green channel**: Contains cells and endosomal event as puncta
 - **Blue channel**: Contains DNA signal that colocalizes with endosomal event puncta
@@ -43,9 +43,9 @@ The software quantifies the overlap of the signal in the 'blue' channel with the
 
 # Use Case and Adaptability
 
-This software was originally developed for a project quantifying endosomal processes following **DNA-LNP transfection** of specific cell lines. The full paper can be found [here](insert DOI link once published).
+This software was originally developed for a project quantifying endosomal processes following **DNA-LNP transfection** of specific cell lines. The full paper can be found [here](https://doi.org/10.1016/j.jconrel.2025.113709).
 
-You can use the software as-is with the **pre-trained Ilastik segmentation files** available [here](link to Ilastik project files once published) to replicate the published results or apply it to similar types of image data. 
+You can use the software as-is with the **pre-trained Ilastik segmentation files** available [here](https://doi.org/10.5281/zenodo.14537397) (you need the *.ilp files contained in that repository) to replicate the published results or apply it to similar types of image data. 
 
 While the software is tailored for this specific use case, it can be adapted for other image quantification tasks. The workflow can be used for any task that involves quantifying the overlap of puncta in two signal channels, where one channel also contains a weaker signal representing the cells, along with a separate channel for the cell nucleus. 
 
@@ -59,6 +59,8 @@ To apply the software to different datasets, you can train new Ilastik project f
 
 ![](/assets/Event_graph.png)
 
+Note the size of the error bars. The biological response varies greatly cell-by-cell, which was discovered thanks to the large amount of cells quantified by this software.
+
 # Example 3D segmented cell mask (single timepoint of a time-series): #
 
 ![](/assets/labeled_cells_3D.png)
@@ -67,10 +69,12 @@ To apply the software to different datasets, you can train new Ilastik project f
 
 ![](/assets/event_graph_3D.png)
 
+Again, note the size of the error bars showing the cell-by-cell variability of the biological response discovered through use of this software.
+
 # How to install:
 1. Download the [contents of this repository](https://docs.github.com/en/get-started/start-your-journey/downloading-files-from-github#downloading-a-repositorys-files) and save the confocal_image_quantification folder including its contents on your machine.
 2. Download [Ilastik](https://www.ilastik.org/)
-3. Download pre-trained Ilastik segmentation project files for each image channel [here](link to Ilastik project files once published) or create your own. By default, the software expects to find these project files with the correct file-names in the same location as the .bat file used to run the software (details - see further on).
+3. Download pre-trained Ilastik segmentation project files for each image channel [here](https://doi.org/10.5281/zenodo.14537397) (you need the *.ilp files contained in that repository) or create your own. By default, the software expects to find these project files with the correct file-names in the same location as the .bat file used to run the software (details - see further on).
 4. Download Python and the required dependencies (see ‘Dependencies’ section)
 
 # Image Data Preparation and Software Usage
