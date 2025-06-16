@@ -138,326 +138,336 @@ def quantify_tiff_files(cells_seg_tif, nuclei_seg_tif, DNA_tif, DNA_seg_tif, end
     dna_count_df = pd.DataFrame(columns=['Time','DNA_in_cells','DNA_outside_cells','area_inside_cells','area_outside_cells','DNA_in_cells_per_area','DNA_outside_cells_per_area'])
 
     #quantify data timepoint by timepoint
-    while time_iterator < t_max:
-        print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Cleaning nucleus segmentation image')
+    try:
+        while time_iterator < t_max:
+            print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Cleaning nucleus segmentation image')
 
-        if image_dimensions == 3:
-            image_cells_segmented_current = np.copy(image_cells_segmented[time_iterator,:,:])
-            image_nuclei_segmented_current = np.copy(image_nuclei_segmented[time_iterator,:,:])
-            image_DNA_in_cells_current = np.copy(image_DNA_in_cells[time_iterator,:,:])
-            image_DNA_outside_cells_current = np.copy(image_DNA_outside_cells[time_iterator,:,:])
-            image_overlap_current = np.copy(image_overlap[time_iterator,:,:])
-            image_blue_segmented_current = np.copy(image_blue_segmented[time_iterator,:,:])
-            image_green_segmented_current = np.copy(image_green_segmented[time_iterator,:,:])
-            overlap_area_cutoff_adjusted = overlap_area_cutoff * overlap_area_cutoff
-            nucleus_area_cutoff_adjusted = nucleus_area_cutoff * nucleus_area_cutoff
-        elif image_dimensions == 4:
-            image_cells_segmented_current = np.copy(image_cells_segmented[time_iterator,:,:,:])
-            image_nuclei_segmented_current = np.copy(image_nuclei_segmented[time_iterator,:,:,:])
-            image_DNA_in_cells_current = np.copy(image_DNA_in_cells[time_iterator,:,:,:])
-            image_DNA_outside_cells_current = np.copy(image_DNA_outside_cells[time_iterator,:,:,:])
-            image_overlap_current = np.copy(image_overlap[time_iterator,:,:,:])
-            image_blue_segmented_current = np.copy(image_blue_segmented[time_iterator,:,:,:])
-            image_green_segmented_current = np.copy(image_green_segmented[time_iterator,:,:,:])
-            overlap_area_cutoff_adjusted = overlap_area_cutoff * overlap_area_cutoff * (overlap_area_cutoff * z_dimension_scale_factor)
-            nucleus_area_cutoff_adjusted = nucleus_area_cutoff * nucleus_area_cutoff * (nucleus_area_cutoff * z_dimension_scale_factor)
-            
-        #label individual nuclei - this assumes the nuclei are never touching, which seems to be a safe assumption
-        image_nuclei_segmented_labels = np.copy(image_nuclei_segmented_current)
-        image_nuclei_segmented_labels = skimage.measure.label(image_nuclei_segmented_labels, background=0)
-        
-        #prepare list of nuclei to be removed from the count due to their small size
-        nuclei_list_to_clean = []
-
-        #count area of each nucleus, fill in list to be cleaned (exclusion threshold set in settings.ini file)
-        moments = skimage.measure.regionprops_table(image_nuclei_segmented_labels, properties=('label','area'))
-        current_cell_count = moments['label'][-1]
-        for current_label in moments['label']:
-            if moments['area'][current_label-1] < nucleus_area_cutoff_adjusted:
-                nuclei_list_to_clean.append(current_label)
-                current_area = moments['area'][current_label-1]
-                current_cell_count -= 1
-
-        #do actual cleaning on the original nucleus segmentation image
-        for cleaning_label in nuclei_list_to_clean:
-            image_nuclei_segmented_current[image_nuclei_segmented_labels == cleaning_label] = 0
-
-        #label each nucleus in that image
-        image_nuclei_segmented_current = skimage.measure.label(image_nuclei_segmented_current, background=0)
-
-        print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Segmenting individual cells')
-
-        #perform watershed segmentation using labelled nuclei as troughs, resulting in separated cells even if their borders touch
-        image_cells_segmented_current = skimage.segmentation.watershed(image_cells_segmented_current, markers=image_nuclei_segmented_current, mask=(image_cells_segmented_current > 0))
-
-        print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Quantifying DNA outside the cells')
-
-        #count DNA (by summing intesity) outside all cells. Normalize by area
-        current_DNA_count_outside_cells = np.sum(image_DNA_outside_cells_current)
-        current_area_outside_cells = (image_cells_segmented_current == 0).sum()
-        current_DNA_count_outside_cells_by_area = current_DNA_count_outside_cells / current_area_outside_cells
-
-        #remove cells that touch the image edge:
-        if image_dimensions == 3:
-            edge_1 = image_cells_segmented_current[0,:]
-            edge_2 = image_cells_segmented_current[-1,:]
-            edge_3 = image_cells_segmented_current[:,0]
-            edge_4 = image_cells_segmented_current[:,-1]
-            edge_total = np.concatenate((edge_1,edge_2,edge_3,edge_4))
-        elif image_dimensions == 4:
-            #edge_1 = image_cells_segmented_current[0,:,:]
-            #edge_2 = image_cells_segmented_current[-1,:,:]
-            edge_3 = image_cells_segmented_current[:,0,:]
-            edge_4 = image_cells_segmented_current[:,-1,:]
-            edge_5 = image_cells_segmented_current[:,:,0]
-            edge_6 = image_cells_segmented_current[:,:,-1]
-            edge_total = np.concatenate((edge_3,edge_4,edge_5,edge_6))#np.concatenate((edge_1,edge_2,edge_3,edge_4,edge_5,edge_6))
-        edge_total_unique = np.unique(edge_total)
-
-        print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Removing {len(edge_total_unique)} cells that touch the edge')
-
-        for element in edge_total_unique:
-            image_cells_segmented_current[image_cells_segmented_current == element] = 0
-
-        print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Quantifying DNA inside the cells')
-
-        #count DNA (by summing intesity) inside all cells. Normalize by area
-        image_DNA_in_cells_current[image_cells_segmented_current == 0] = 0
-        current_DNA_count_in_cells = np.sum(image_DNA_in_cells_current)
-        current_area_in_cells = (image_cells_segmented_current > 0).sum()
-        current_DNA_count_in_cells_by_area = current_DNA_count_in_cells / current_area_in_cells
-        dna_count_df.loc[len(dna_count_df)] = [int(time_iterator), current_DNA_count_in_cells, current_DNA_count_outside_cells, current_area_in_cells, current_area_outside_cells, current_DNA_count_in_cells_by_area, current_DNA_count_outside_cells_by_area]
-        
-        print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Characterizing individual cells')
-        
-        #get cell count to make cell list
-        image_cells_segmented_current_unique, image_cells_segmented_current_counts = np.unique(image_cells_segmented_current, return_counts=True)
-        
-        #characterize each cell one by one
-        max_iterator = len(image_cells_segmented_current_unique)
-        for iterator in range(max_iterator):
-            if iterator > 0:
-                current_label = image_cells_segmented_current_unique[iterator]
-                current_area = image_cells_segmented_current_counts[iterator]
-
-                #create mask for each cell
-                cell_mask = image_cells_segmented_current == current_label    # Mask for elements with current label
-
-                DNA_area_in_cell = image_blue_segmented_current[cell_mask]  # Extract DNA elements in current cell
-                DNA_area_in_cell_count = np.count_nonzero(DNA_area_in_cell == 1)  # Count DNA elements with value 1
-                
-                overlap_area_in_cell = image_overlap_current[cell_mask]
-                overlap_area_in_cell_count = np.count_nonzero(overlap_area_in_cell == 1)
-
-                if DNA_area_in_cell_count > 0:
-                    overlap_area_percent_of_DNA_area = overlap_area_in_cell_count / DNA_area_in_cell_count * 100
-                else:
-                    overlap_area_percent_of_DNA_area = np.nan
-
-                DNA_signal_intensity_in_cell_total = np.sum(image_DNA_in_cells_current[cell_mask])
-
-                if current_area > 0:
-                    DNA_signal_intensity_in_cell_by_area = DNA_signal_intensity_in_cell_total / current_area
-                else:
-                    DNA_signal_intensity_in_cell_by_area = np.nan
-
-                cell_df.loc[len(cell_df)] = [int(time_iterator), int(current_label), int(current_area), int(DNA_area_in_cell_count), int(overlap_area_in_cell_count), overlap_area_percent_of_DNA_area, DNA_signal_intensity_in_cell_by_area]
-        
-        #if verbose mode is active, save intermediate image (labelled cells)
-        if verbose == 1:    
-            labeled_cells_dir = os.path.join(base, 'labeleled_cells', ('labeled_cells_' + str(time_iterator) + '.tif'))
-            image_cells_segmented_current_out = np.copy(image_cells_segmented_current).astype('uint16')
-            tif.imwrite(labeled_cells_dir, image_cells_segmented_current_out)
-
-
-        print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} Counting colocalized spots',end='\r')
-        
-        #assign unique label to each point in the overlap map (gives count)
-        image_overlap_labels = np.copy(image_overlap_current)
-        image_overlap_labels = skimage.measure.label(image_overlap_labels, background=0)
-
-        #if verbose mode is active, save intermediate image (labelled overlapped spots)
-        if verbose:
-            labeled_cells_dir = os.path.join(base, 'labeled_colocalized_spots', ('labeled_spots_' + str(time_iterator) + '.tif'))
-            image_spots_segmented_current_out = np.copy(image_overlap_labels).astype('uint16')
-            tif.imwrite(labeled_cells_dir, image_spots_segmented_current_out)
-
-        #use image moments to characterize overlap map (gives area, etc.), if desireable
-        moments = skimage.measure.regionprops_table(image_overlap_labels, properties=('label','area','centroid'))
-
-        current_label = 0
-        max_label = len(moments['label'])
-
-        #for each colocalized spot, use the image moments derived centroid to get coordinates of each spot's center
-        while current_label < max_label:
-            current_area = moments['area'][current_label]
             if image_dimensions == 3:
-                current_center_y = int(moments['centroid-0'][current_label])
-                current_center_x = int(moments['centroid-1'][current_label])
+                image_cells_segmented_current = np.copy(image_cells_segmented[time_iterator,:,:])
+                image_nuclei_segmented_current = np.copy(image_nuclei_segmented[time_iterator,:,:])
+                image_DNA_in_cells_current = np.copy(image_DNA_in_cells[time_iterator,:,:])
+                image_DNA_outside_cells_current = np.copy(image_DNA_outside_cells[time_iterator,:,:])
+                image_overlap_current = np.copy(image_overlap[time_iterator,:,:])
+                image_blue_segmented_current = np.copy(image_blue_segmented[time_iterator,:,:])
+                image_green_segmented_current = np.copy(image_green_segmented[time_iterator,:,:])
+                overlap_area_cutoff_adjusted = overlap_area_cutoff * overlap_area_cutoff
+                nucleus_area_cutoff_adjusted = nucleus_area_cutoff * nucleus_area_cutoff
             elif image_dimensions == 4:
-                current_center_z = int(moments['centroid-0'][current_label])
-                current_center_y = int(moments['centroid-1'][current_label])
-                current_center_x = int(moments['centroid-2'][current_label])
+                image_cells_segmented_current = np.copy(image_cells_segmented[time_iterator,:,:,:])
+                image_nuclei_segmented_current = np.copy(image_nuclei_segmented[time_iterator,:,:,:])
+                image_DNA_in_cells_current = np.copy(image_DNA_in_cells[time_iterator,:,:,:])
+                image_DNA_outside_cells_current = np.copy(image_DNA_outside_cells[time_iterator,:,:,:])
+                image_overlap_current = np.copy(image_overlap[time_iterator,:,:,:])
+                image_blue_segmented_current = np.copy(image_blue_segmented[time_iterator,:,:,:])
+                image_green_segmented_current = np.copy(image_green_segmented[time_iterator,:,:,:])
+                overlap_area_cutoff_adjusted = overlap_area_cutoff * overlap_area_cutoff * (overlap_area_cutoff * z_dimension_scale_factor)
+                nucleus_area_cutoff_adjusted = nucleus_area_cutoff * nucleus_area_cutoff * (nucleus_area_cutoff * z_dimension_scale_factor)
+                
+            #label individual nuclei - this assumes the nuclei are never touching, which seems to be a safe assumption
+            image_nuclei_segmented_labels = np.copy(image_nuclei_segmented_current)
+            image_nuclei_segmented_labels = skimage.measure.label(image_nuclei_segmented_labels, background=0)
             
-            #Clean the overlap data: remove spots where the overlap is too large (cutoof set in the settings.ini file)
-            #once cleaned, assign spots to a cell using center coordinates
-            if current_area > overlap_area_cutoff_adjusted:
-                (f'Removing overlap label: {current_label:04} area was {current_area}')
-            else:     
-                if image_dimensions == 3:
-                    current_cell_label = int(image_cells_segmented_current[current_center_y,current_center_x])
-                elif image_dimensions == 4:
-                    current_cell_label = int(image_cells_segmented_current[current_center_z, current_center_y,current_center_x])
-                overlap_df.loc[len(overlap_df)] = [time_iterator, current_label, current_cell_label]
-            current_label += 1
+            #prepare list of nuclei to be removed from the count due to their small size
+            nuclei_list_to_clean = []
 
-        #if the green spots should be counted by themselves also, do so here
-        if count_green == 1:
-            image_cells_segmented_current_mask = np.copy(image_cells_segmented_current)
-            image_cells_segmented_current_mask[image_cells_segmented_current_mask > 0] = 1
-            image_green_segmented_current_label = np.multiply(image_green_segmented_current, image_cells_segmented_current_mask)
+            #count area of each nucleus, fill in list to be cleaned (exclusion threshold set in settings.ini file)
+            moments = skimage.measure.regionprops_table(image_nuclei_segmented_labels, properties=('label','area'))
+            
+            #check if any nuclei have been found
+            if len(moments['label']) == 0:
+                raise ValueError(f'Encountered timepoint with no detectable nuclei, cancelling quantification - timepoint {time_iterator}')
+            
+            current_cell_count = moments['label'][-1]
+            for current_label in moments['label']:
+                if moments['area'][current_label-1] < nucleus_area_cutoff_adjusted:
+                    nuclei_list_to_clean.append(current_label)
+                    current_area = moments['area'][current_label-1]
+                    current_cell_count -= 1
 
-            image_green_segmented_current_label = skimage.measure.label(image_green_segmented_current_label, background = 0)
+            #do actual cleaning on the original nucleus segmentation image
+            for cleaning_label in nuclei_list_to_clean:
+                image_nuclei_segmented_current[image_nuclei_segmented_labels == cleaning_label] = 0
 
-            moments_green = skimage.measure.regionprops_table(image_green_segmented_current_label, properties=('label','area','centroid'))
+            #label each nucleus in that image
+            image_nuclei_segmented_current = skimage.measure.label(image_nuclei_segmented_current, background=0)
 
-            if verbose:    
-                labeled_cells_dir = os.path.join(base, 'labeled_puncta', ('labeled_puncta_' + str(time_iterator) + '.tif'))
-                image_green_spots_segmented_current_out = np.copy(image_green_segmented_current_label).astype('uint16')
-                tif.imwrite(labeled_cells_dir, image_green_spots_segmented_current_out)
+            print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Segmenting individual cells')
+
+            #perform watershed segmentation using labelled nuclei as troughs, resulting in separated cells even if their borders touch
+            image_cells_segmented_current = skimage.segmentation.watershed(image_cells_segmented_current, markers=image_nuclei_segmented_current, mask=(image_cells_segmented_current > 0))
+
+            print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Quantifying DNA outside the cells')
+
+            #count DNA (by summing intesity) outside all cells. Normalize by area
+            current_DNA_count_outside_cells = np.sum(image_DNA_outside_cells_current)
+            current_area_outside_cells = (image_cells_segmented_current == 0).sum()
+            current_DNA_count_outside_cells_by_area = current_DNA_count_outside_cells / current_area_outside_cells
+
+            #remove cells that touch the image edge:
+            if image_dimensions == 3:
+                edge_1 = image_cells_segmented_current[0,:]
+                edge_2 = image_cells_segmented_current[-1,:]
+                edge_3 = image_cells_segmented_current[:,0]
+                edge_4 = image_cells_segmented_current[:,-1]
+                edge_total = np.concatenate((edge_1,edge_2,edge_3,edge_4))
+            elif image_dimensions == 4:
+                #edge_1 = image_cells_segmented_current[0,:,:]
+                #edge_2 = image_cells_segmented_current[-1,:,:]
+                edge_3 = image_cells_segmented_current[:,0,:]
+                edge_4 = image_cells_segmented_current[:,-1,:]
+                edge_5 = image_cells_segmented_current[:,:,0]
+                edge_6 = image_cells_segmented_current[:,:,-1]
+                edge_total = np.concatenate((edge_3,edge_4,edge_5,edge_6))#np.concatenate((edge_1,edge_2,edge_3,edge_4,edge_5,edge_6))
+            edge_total_unique = np.unique(edge_total)
+
+            print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Removing {len(edge_total_unique)} cells that touch the edge')
+
+            for element in edge_total_unique:
+                image_cells_segmented_current[image_cells_segmented_current == element] = 0
+
+            print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Quantifying DNA inside the cells')
+
+            #count DNA (by summing intesity) inside all cells. Normalize by area
+            image_DNA_in_cells_current[image_cells_segmented_current == 0] = 0
+            current_DNA_count_in_cells = np.sum(image_DNA_in_cells_current)
+            current_area_in_cells = (image_cells_segmented_current > 0).sum()
+            current_DNA_count_in_cells_by_area = current_DNA_count_in_cells / current_area_in_cells
+            dna_count_df.loc[len(dna_count_df)] = [int(time_iterator), current_DNA_count_in_cells, current_DNA_count_outside_cells, current_area_in_cells, current_area_outside_cells, current_DNA_count_in_cells_by_area, current_DNA_count_outside_cells_by_area]
+            
+            print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} - Characterizing individual cells')
+            
+            #get cell count to make cell list
+            image_cells_segmented_current_unique, image_cells_segmented_current_counts = np.unique(image_cells_segmented_current, return_counts=True)
+            
+            #characterize each cell one by one
+            max_iterator = len(image_cells_segmented_current_unique)
+            if max_iterator == 0:
+                raise ValueError(f'Encountered timepoint with no detectable cells, cancelling quantification - timepoint {time_iterator}')
+            for iterator in range(max_iterator):
+                if iterator > 0:
+                    current_label = image_cells_segmented_current_unique[iterator]
+                    current_area = image_cells_segmented_current_counts[iterator]
+
+                    #create mask for each cell
+                    cell_mask = image_cells_segmented_current == current_label    # Mask for elements with current label
+
+                    DNA_area_in_cell = image_blue_segmented_current[cell_mask]  # Extract DNA elements in current cell
+                    DNA_area_in_cell_count = np.count_nonzero(DNA_area_in_cell == 1)  # Count DNA elements with value 1
+                    
+                    overlap_area_in_cell = image_overlap_current[cell_mask]
+                    overlap_area_in_cell_count = np.count_nonzero(overlap_area_in_cell == 1)
+
+                    if DNA_area_in_cell_count > 0:
+                        overlap_area_percent_of_DNA_area = overlap_area_in_cell_count / DNA_area_in_cell_count * 100
+                    else:
+                        overlap_area_percent_of_DNA_area = np.nan
+
+                    DNA_signal_intensity_in_cell_total = np.sum(image_DNA_in_cells_current[cell_mask])
+
+                    if current_area > 0:
+                        DNA_signal_intensity_in_cell_by_area = DNA_signal_intensity_in_cell_total / current_area
+                    else:
+                        DNA_signal_intensity_in_cell_by_area = np.nan
+
+                    cell_df.loc[len(cell_df)] = [int(time_iterator), int(current_label), int(current_area), int(DNA_area_in_cell_count), int(overlap_area_in_cell_count), overlap_area_percent_of_DNA_area, DNA_signal_intensity_in_cell_by_area]
+            
+            #if verbose mode is active, save intermediate image (labelled cells)
+            if verbose == 1:    
+                labeled_cells_dir = os.path.join(base, 'labeleled_cells', ('labeled_cells_' + str(time_iterator) + '.tif'))
+                image_cells_segmented_current_out = np.copy(image_cells_segmented_current).astype('uint16')
+                tif.imwrite(labeled_cells_dir, image_cells_segmented_current_out)
+
+
+            print(f'working on timepoint {time_iterator+1:03} out of {t_max:03} Counting colocalized spots',end='\r')
+            
+            #assign unique label to each point in the overlap map (gives count)
+            image_overlap_labels = np.copy(image_overlap_current)
+            image_overlap_labels = skimage.measure.label(image_overlap_labels, background=0)
+
+            #if verbose mode is active, save intermediate image (labelled overlapped spots)
+            if verbose:
+                labeled_cells_dir = os.path.join(base, 'labeled_colocalized_spots', ('labeled_spots_' + str(time_iterator) + '.tif'))
+                image_spots_segmented_current_out = np.copy(image_overlap_labels).astype('uint16')
+                tif.imwrite(labeled_cells_dir, image_spots_segmented_current_out)
+
+            #use image moments to characterize overlap map (gives area, etc.), if desireable
+            moments = skimage.measure.regionprops_table(image_overlap_labels, properties=('label','area','centroid'))
 
             current_label = 0
-            max_label = len(moments_green['label'])
+            max_label = len(moments['label'])
 
+            #for each colocalized spot, use the image moments derived centroid to get coordinates of each spot's center
             while current_label < max_label:
-                current_area = moments_green['area'][current_label]
+                current_area = moments['area'][current_label]
                 if image_dimensions == 3:
-                    current_center_y = int(moments_green['centroid-0'][current_label])
-                    current_center_x = int(moments_green['centroid-1'][current_label])
+                    current_center_y = int(moments['centroid-0'][current_label])
+                    current_center_x = int(moments['centroid-1'][current_label])
                 elif image_dimensions == 4:
-                    current_center_z = int(moments_green['centroid-0'][current_label])
-                    current_center_y = int(moments_green['centroid-1'][current_label])
-                    current_center_x = int(moments_green['centroid-2'][current_label])
+                    current_center_z = int(moments['centroid-0'][current_label])
+                    current_center_y = int(moments['centroid-1'][current_label])
+                    current_center_x = int(moments['centroid-2'][current_label])
                 
+                #Clean the overlap data: remove spots where the overlap is too large (cutoof set in the settings.ini file)
+                #once cleaned, assign spots to a cell using center coordinates
                 if current_area > overlap_area_cutoff_adjusted:
-                    (f'Removing green label: {current_label:04} area was {current_area}')
+                    (f'Removing overlap label: {current_label:04} area was {current_area}')
                 else:     
                     if image_dimensions == 3:
                         current_cell_label = int(image_cells_segmented_current[current_center_y,current_center_x])
                     elif image_dimensions == 4:
                         current_cell_label = int(image_cells_segmented_current[current_center_z, current_center_y,current_center_x])
-                    green_puncta_df.loc[len(green_puncta_df)] = [time_iterator, current_label, current_cell_label]
-                
+                    overlap_df.loc[len(overlap_df)] = [time_iterator, current_label, current_cell_label]
                 current_label += 1
 
-        time_iterator += 1
-    
-    # Merge dataframes on 'Cell_label' and 'Time' columns
-    merged_df = pd.merge(cell_df, overlap_df, on=['Cell_label', 'Time'], how='left')#.fillna(0)
-    merged_df = merged_df.dropna(subset=['Overlap_label'])
+            #if the green spots should be counted by themselves also, do so here
+            if count_green == 1:
+                image_cells_segmented_current_mask = np.copy(image_cells_segmented_current)
+                image_cells_segmented_current_mask[image_cells_segmented_current_mask > 0] = 1
+                image_green_segmented_current_label = np.multiply(image_green_segmented_current, image_cells_segmented_current_mask)
 
-    # Group by 'Cell_label' and calculate the event count
-    event_counts = merged_df.groupby(['Time', 'Cell_label']).size().reset_index(name='Event_count')
+                image_green_segmented_current_label = skimage.measure.label(image_green_segmented_current_label, background = 0)
 
-    # Add 'Event_count' column to cells_df
-    cell_df = pd.merge(cell_df, event_counts, on=['Time','Cell_label'], how='left').fillna(0)
-    # Normalize by cell area
-    cell_df['Event_count_per_area'] = cell_df['Event_count'] / cell_df['Cell_area']
+                moments_green = skimage.measure.regionprops_table(image_green_segmented_current_label, properties=('label','area','centroid'))
 
-    #add green puncta count if option is enabled
-    if count_green == 1:
-        merged_df_green = pd.merge(cell_df, green_puncta_df, on=['Cell_label', 'Time'], how='left')
-        merged_df_green = merged_df_green.dropna(subset=['Overlap_label'])
+                if verbose:    
+                    labeled_cells_dir = os.path.join(base, 'labeled_puncta', ('labeled_puncta_' + str(time_iterator) + '.tif'))
+                    image_green_spots_segmented_current_out = np.copy(image_green_segmented_current_label).astype('uint16')
+                    tif.imwrite(labeled_cells_dir, image_green_spots_segmented_current_out)
 
-        green_puncta_count = merged_df_green.groupby(['Time', 'Cell_label']).size().reset_index(name='Green_puncta_count')
-        cell_df = pd.merge(cell_df, green_puncta_count, on=['Time','Cell_label'], how='left').fillna(0)
-        cell_df['Green_puncta_count_per_area'] = cell_df['Green_puncta_count'] / cell_df['Cell_area']
+                current_label = 0
+                max_label = len(moments_green['label'])
 
-    #summarize results by timepoint
-    if count_green == 1:
-        result_df = cell_df.groupby('Time').agg({
-        'Event_count': ['mean', 'std'],
-        'Cell_area': ['mean', 'std', 'count'],
-        'Event_count_per_area': ['mean','std'],
-        'DNA_area': ['mean','std'],
-        'Overlap_area': ['mean','std'],
-        'Overlap_area_percent_of_DNA_area': ['mean','std'],
-        'DNA_mean_signal_intensity': ['mean','std'],
-        'Green_puncta_count': ['mean', 'std'],
-        'Green_puncta_count_per_area': ['mean','std']
-        })
-    else:
-        result_df = cell_df.groupby('Time').agg({
-        'Event_count': ['mean', 'std'],
-        'Cell_area': ['mean', 'std', 'count'],
-        'Event_count_per_area': ['mean','std'],
-        'DNA_area': ['mean','std'],
-        'Overlap_area': ['mean','std'],
-        'Overlap_area_percent_of_DNA_area': ['mean','std'],
-        'DNA_mean_signal_intensity': ['mean','std']
-        })
+                while current_label < max_label:
+                    current_area = moments_green['area'][current_label]
+                    if image_dimensions == 3:
+                        current_center_y = int(moments_green['centroid-0'][current_label])
+                        current_center_x = int(moments_green['centroid-1'][current_label])
+                    elif image_dimensions == 4:
+                        current_center_z = int(moments_green['centroid-0'][current_label])
+                        current_center_y = int(moments_green['centroid-1'][current_label])
+                        current_center_x = int(moments_green['centroid-2'][current_label])
+                    
+                    if current_area > overlap_area_cutoff_adjusted:
+                        (f'Removing green label: {current_label:04} area was {current_area}')
+                    else:     
+                        if image_dimensions == 3:
+                            current_cell_label = int(image_cells_segmented_current[current_center_y,current_center_x])
+                        elif image_dimensions == 4:
+                            current_cell_label = int(image_cells_segmented_current[current_center_z, current_center_y,current_center_x])
+                        green_puncta_df.loc[len(green_puncta_df)] = [time_iterator, current_label, current_cell_label]
+                    
+                    current_label += 1
 
-    #create overlap count by cell histogram if option is enabled
-    if create_histogram == 1:
-        print('Drawing histograms')
-        timepoint_list = np.unique(cell_df['Time'].to_numpy())
-        max_cell_count = int(result_df['Cell_area']['count'].max())
-        max_event_count = int(cell_df['Event_count'].max())
-        for current_timepoint in timepoint_list:
-            title_text = f'Event count histogram timepoint {current_timepoint}'
-            cell_df_time_subset = cell_df.loc[cell_df['Time'] == current_timepoint]
-            cell_df_time_subset_list = cell_df_time_subset['Event_count'].tolist()
-            #max_event_count = int(max(cell_df_time_subset_list))
-            plt.figure().set_figwidth(max_event_count)
-            axes = plt.gca()
-            axes.set_ylim([0,max_cell_count])
-            plt.hist(cell_df_time_subset_list,bins=range(max_event_count),color='blue')
-            plt.title(title_text)
-            histogram_directory = os.path.join(base,'histograms', f'hist_{int(current_timepoint):03}.png')
-            plt.savefig(histogram_directory)
-            plt.close()
+            time_iterator += 1
+        
+        # Merge dataframes on 'Cell_label' and 'Time' columns
+        merged_df = pd.merge(cell_df, overlap_df, on=['Cell_label', 'Time'], how='left')#.fillna(0)
+        merged_df = merged_df.dropna(subset=['Overlap_label'])
 
-    # Load the Excel file to write results to
-    xlsx_path = os.path.join(base, f'{parent_folder_name}_results.xlsx')
-    workbook = openpyxl.load_workbook(xlsx_path)
+        # Group by 'Cell_label' and calculate the event count
+        event_counts = merged_df.groupby(['Time', 'Cell_label']).size().reset_index(name='Event_count')
 
-    # Select the right worksheet
-    sheet = workbook.worksheets[0]
+        # Add 'Event_count' column to cells_df
+        cell_df = pd.merge(cell_df, event_counts, on=['Time','Cell_label'], how='left').fillna(0)
+        # Normalize by cell area
+        cell_df['Event_count_per_area'] = cell_df['Event_count'] / cell_df['Cell_area']
 
-    # Write DataFrame to Excel file
-    for row in result_df.itertuples(index=True):
-        sheet.append(list(row))
+        #add green puncta count if option is enabled
+        if count_green == 1:
+            merged_df_green = pd.merge(cell_df, green_puncta_df, on=['Cell_label', 'Time'], how='left')
+            merged_df_green = merged_df_green.dropna(subset=['Overlap_label'])
 
-    sheet = workbook.worksheets[1]
-    for row in cell_df.itertuples(index=False):
-        sheet.append(list(row))
+            green_puncta_count = merged_df_green.groupby(['Time', 'Cell_label']).size().reset_index(name='Green_puncta_count')
+            cell_df = pd.merge(cell_df, green_puncta_count, on=['Time','Cell_label'], how='left').fillna(0)
+            cell_df['Green_puncta_count_per_area'] = cell_df['Green_puncta_count'] / cell_df['Cell_area']
 
-    sheet = workbook.worksheets[2]
-    for row in dna_count_df.itertuples(index=False):
-        sheet.append(list(row))
+        #summarize results by timepoint
+        if count_green == 1:
+            result_df = cell_df.groupby('Time').agg({
+            'Event_count': ['mean', 'std'],
+            'Cell_area': ['mean', 'std', 'count'],
+            'Event_count_per_area': ['mean','std'],
+            'DNA_area': ['mean','std'],
+            'Overlap_area': ['mean','std'],
+            'Overlap_area_percent_of_DNA_area': ['mean','std'],
+            'DNA_mean_signal_intensity': ['mean','std'],
+            'Green_puncta_count': ['mean', 'std'],
+            'Green_puncta_count_per_area': ['mean','std']
+            })
+        else:
+            result_df = cell_df.groupby('Time').agg({
+            'Event_count': ['mean', 'std'],
+            'Cell_area': ['mean', 'std', 'count'],
+            'Event_count_per_area': ['mean','std'],
+            'DNA_area': ['mean','std'],
+            'Overlap_area': ['mean','std'],
+            'Overlap_area_percent_of_DNA_area': ['mean','std'],
+            'DNA_mean_signal_intensity': ['mean','std']
+            })
 
-    metadata_list_settings = [
-        ['version',version],
-        ['nucleus_area_cutoff',nucleus_area_cutoff],
-        ['overlap_area_cutoff',overlap_area_cutoff],
-        ['z_dimension_scale_factor',z_dimension_scale_factor],
-        ['verbose',verbose],
-        ['create_histogram',create_histogram],
-        ['count_green_puncta',count_green],
-        ['DNA_segmented',DNA_seg_tif],
-        ['DNA_raw',DNA_tif],
-        ['Endosomal_event_sgmented',endo_seg_tif],
-        ['Nuclei_segmented',nuclei_seg_tif],
-        ['Cells_segmented',cells_seg_tif]
-    ]
-    sheet = workbook.worksheets[3]
-    for row in metadata_list_settings:
-        sheet.append(row)
+        #create overlap count by cell histogram if option is enabled
+        if create_histogram == 1:
+            print('Drawing histograms')
+            timepoint_list = np.unique(cell_df['Time'].to_numpy())
+            max_cell_count = int(result_df['Cell_area']['count'].max())
+            max_event_count = int(cell_df['Event_count'].max())
+            for current_timepoint in timepoint_list:
+                title_text = f'Event count histogram timepoint {current_timepoint}'
+                cell_df_time_subset = cell_df.loc[cell_df['Time'] == current_timepoint]
+                cell_df_time_subset_list = cell_df_time_subset['Event_count'].tolist()
+                #max_event_count = int(max(cell_df_time_subset_list))
+                plt.figure().set_figwidth(max_event_count)
+                axes = plt.gca()
+                axes.set_ylim([0,max_cell_count])
+                plt.hist(cell_df_time_subset_list,bins=range(max_event_count),color='blue')
+                plt.title(title_text)
+                histogram_directory = os.path.join(base,'histograms', f'hist_{int(current_timepoint):03}.png')
+                plt.savefig(histogram_directory)
+                plt.close()
 
-    #save the changes
-    workbook.save(xlsx_path)
+        # Load the Excel file to write results to
+        xlsx_path = os.path.join(base, f'{parent_folder_name}_results.xlsx')
+        workbook = openpyxl.load_workbook(xlsx_path)
 
-    return
+        # Select the right worksheet
+        sheet = workbook.worksheets[0]
+
+        # Write DataFrame to Excel file
+        for row in result_df.itertuples(index=True):
+            sheet.append(list(row))
+
+        sheet = workbook.worksheets[1]
+        for row in cell_df.itertuples(index=False):
+            sheet.append(list(row))
+
+        sheet = workbook.worksheets[2]
+        for row in dna_count_df.itertuples(index=False):
+            sheet.append(list(row))
+
+        metadata_list_settings = [
+            ['version',version],
+            ['nucleus_area_cutoff',nucleus_area_cutoff],
+            ['overlap_area_cutoff',overlap_area_cutoff],
+            ['z_dimension_scale_factor',z_dimension_scale_factor],
+            ['verbose',verbose],
+            ['create_histogram',create_histogram],
+            ['count_green_puncta',count_green],
+            ['DNA_segmented',DNA_seg_tif],
+            ['DNA_raw',DNA_tif],
+            ['Endosomal_event_sgmented',endo_seg_tif],
+            ['Nuclei_segmented',nuclei_seg_tif],
+            ['Cells_segmented',cells_seg_tif]
+        ]
+        sheet = workbook.worksheets[3]
+        for row in metadata_list_settings:
+            sheet.append(row)
+
+        #save the changes
+        workbook.save(xlsx_path)
+    except ValueError as err:
+        print('Error in image data: ', err)
+        return('red')
+    return('green')
         
 def run_ilastik_headless(project_name,input_image):
     #run headless ilastik pixel classification
@@ -575,12 +585,13 @@ def process_step_one():
 
 def process_step_two():
     #initialize image quantification
+    quantification_button.config(bg='white')
     if os.path.isfile(output_files[0].get()):
         if os.path.isfile(output_files[1].get()):
             if os.path.isfile(output_files[2].get()):
                 if os.path.isfile(output_files[3].get()):
                     if os.path.isfile(output_template_file.get()):
-                        quantify_tiff_files(output_files[0].get(), output_files[1].get(), input_files[2].get(), output_files[2].get(), output_files[3].get(), output_template_file.get(), quant_flags[0].get(), quant_flags[1].get(), quant_flags[2].get())
+                        outcome = quantify_tiff_files(output_files[0].get(), output_files[1].get(), input_files[2].get(), output_files[2].get(), output_files[3].get(), output_template_file.get(), quant_flags[0].get(), quant_flags[1].get(), quant_flags[2].get())
                     else:
                         print('Output Excel template not found')
                 else:
@@ -591,7 +602,7 @@ def process_step_two():
             print('Nuclei segmentation file not found')
     else:
         print('Cell segmentation file not found')
-    quantification_button.config(bg='green')
+    quantification_button.config(bg=outcome)
 
 
 def show_tooltip(event, text):
